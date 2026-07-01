@@ -79,10 +79,6 @@ export default function BioGenerator() {
     if (runGeneration()) setView('results')
   }
 
-  function handleRegenerate() {
-    runGeneration()
-  }
-
   // Lead popup is triggered by the first bio copy in this session.
   function handleCopied() {
     if (!leadShown) {
@@ -140,11 +136,11 @@ export default function BioGenerator() {
 
             <button
               type="button"
-              onClick={handleRegenerate}
+              onClick={() => setModalOpen(true)}
               className="mt-4 w-full h-[46px] rounded-lg bg-accent text-white text-[15px] font-bold hover:bg-accent-dark transition-colors flex items-center justify-center gap-1.5"
             >
               <span aria-hidden="true">⚡</span>
-              Regenerate
+              Get unlimited bios
             </button>
           </div>
         )}

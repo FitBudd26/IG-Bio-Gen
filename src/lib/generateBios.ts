@@ -28,7 +28,7 @@ export function countChars(text: string): number {
   return Array.from(text).length
 }
 
-type Style = 'authority' | 'results' | 'community'
+type Style = 'authority' | 'results' | 'community' | 'value'
 
 // ---------------------------------------------------------------------------
 // Vocabulary pools
@@ -87,6 +87,7 @@ const TONE: Record<
       ['📈', '💪'],
       ['🎯', '🏋️‍♀️'],
       ['📊', '💪'],
+      ['✅', '💪'],
     ],
   },
   'Motivational & Energetic': {
@@ -95,6 +96,7 @@ const TONE: Record<
       ['🔥', '⚡'],
       ['💪', '🔥'],
       ['⚡', '🏋️‍♀️'],
+      ['🚀', '🔥'],
     ],
   },
   'Friendly & Approachable': {
@@ -103,6 +105,7 @@ const TONE: Record<
       ['💪', '🙌'],
       ['🥗', '💪'],
       ['😊', '🔥'],
+      ['🙌', '🔥'],
     ],
   },
   'Scientific & Educational': {
@@ -111,6 +114,7 @@ const TONE: Record<
       ['🧠', '💪'],
       ['📊', '🔬'],
       ['📈', '🧠'],
+      ['🔬', '💪'],
     ],
   },
 }
@@ -307,10 +311,28 @@ function communityTemplates(c: Ctx): string[] {
   ]
 }
 
+function valueTemplates(c: Ctx): string[] {
+  const [v1, v2] = c.verbs
+  const withUsp = c.usp
+    ? [
+        `${cap(c.usp)}. Real ${c.spec} for ${c.audience}, minus the fluff.`,
+        `${cap(c.usp)} — smarter ${v1}, steadier ${v2}, better results.`,
+      ]
+    : []
+  return [
+    ...withUsp,
+    `${cap(c.spec)} without the guesswork — just ${v1}, ${v2}, and momentum.`,
+    `Helping ${c.audience} move better, feel stronger, and keep the ${v1}.`,
+    `Real ${c.spec} for ${c.audience}. Sustainable ${v1}, zero fluff.`,
+    `${cap(c.spec)} built around your life, not the other way around.`,
+  ]
+}
+
 const TEMPLATES: Record<Style, (c: Ctx) => string[]> = {
   authority: authorityTemplates,
   results: resultsTemplates,
   community: communityTemplates,
+  value: valueTemplates,
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +376,7 @@ export function generateBios(data: BioFormData): GeneratedBio[] {
   const usp = uspSnippet(data.uniqueSellingPoint)
 
   const emojiPairs = shuffle(tone.emojiPairs)
-  const styles: Style[] = ['authority', 'results', 'community']
+  const styles: Style[] = ['authority', 'results', 'community', 'value']
 
   const seenText = new Set<string>()
 

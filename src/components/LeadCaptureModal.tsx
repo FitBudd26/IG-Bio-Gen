@@ -99,7 +99,7 @@ export default function LeadCaptureModal({ open, existingEmail, onClose, onBook 
         </button>
 
         <h2 id="lead-modal-title" className="text-[16px] font-bold text-gray-900 pr-6">
-          Bio copied 🎉
+          Unlock unlimited bios 🎉
         </h2>
         <p className="mt-1.5 text-[13px] leading-snug text-gray-600">
           Want unlimited fitness business tools? Book a free FitBudd demo.
