@@ -1,0 +1,285 @@
+import type {
+  BioFormData,
+  GeneratedBio,
+  Specialization,
+  TargetAudience,
+  TonePreference,
+} from '../types'
+
+export const MAX_CHARS = 150
+
+/**
+ * Grapheme-aware character count so multi-codepoint emojis (e.g. 🏋️‍♀️)
+ * count as a single "character", matching how Instagram-style counters feel.
+ */
+export function countChars(text: string): number {
+  const AnyIntl = Intl as unknown as {
+    Segmenter?: new (
+      locale?: string,
+      opts?: { granularity: 'grapheme' | 'word' | 'sentence' },
+    ) => { segment: (s: string) => Iterable<unknown> }
+  }
+  if (typeof AnyIntl.Segmenter === 'function') {
+    const seg = new AnyIntl.Segmenter('en', { granularity: 'grapheme' })
+    let count = 0
+    for (const _ of seg.segment(text)) count++
+    return count
+  }
+  return Array.from(text).length
+}
+
+type Style = 'authority' | 'results' | 'community'
+
+// ---------------------------------------------------------------------------
+// Vocabulary pools
+// ---------------------------------------------------------------------------
+
+const AUDIENCE_PHRASES: Record<TargetAudience, string[]> = {
+  'Busy Parents': ['busy parents', 'parents on the clock', 'time-strapped parents'],
+  'Young Professionals': ['busy pros', 'young professionals', '9-to-5 hustlers'],
+  'Seniors (55+)': ['the active 55+ crowd', 'strong-at-55 movers', 'seniors who mean it'],
+  Athletes: ['driven athletes', 'competitors', 'athletes'],
+  Beginners: ['beginners', 'day-one lifters', 'first-timers'],
+  'Women Only': ['strong women', 'women who lift', 'women'],
+  'General Population': ['everyday lifters', 'everyday humans', 'real people'],
+}
+
+const SPEC_PHRASES: Record<Specialization, string[]> = {
+  'Weight Loss': ['fat-loss', 'lean results', 'sustainable weight loss'],
+  'Muscle Building': ['real gains', 'strength & size', 'muscle'],
+  'Athletic Performance': ['performance', 'athletic power', 'game-day strength'],
+  'Senior Fitness': ['mobility', 'joint-friendly strength', 'strong-for-life training'],
+  "Women's Health": ["women's strength", 'hormone-smart training', "women's health"],
+  'Youth Training': ['young-athlete development', 'foundational strength', 'youth athletics'],
+  'Injury Recovery': ['pain-free movement', 'rehab-to-strong', 'return-to-strength'],
+  'Nutrition Coaching': ['macros', 'smart fueling', 'no-BS nutrition'],
+  'Mental Health & Fitness': ['mind & muscle', 'stress-proof training', 'mental strength'],
+  'Functional Movement': ['functional movement', 'move-better training', 'everyday strength'],
+}
+
+const FITNESS_VERBS = [
+  'reps',
+  'strength',
+  'form',
+  'mobility',
+  'habits',
+  'coaching',
+  'accountability',
+  'sweat',
+  'gains',
+]
+
+const RESULT_PHRASES = [
+  'results you can measure',
+  'real, lasting results',
+  'progress that sticks',
+  'PRs worth chasing',
+  'lean, strong, capable',
+]
+
+const TONE: Record<
+  TonePreference,
+  { descriptors: string[]; emojiPairs: [string, string][] }
+> = {
+  'Professional & Credible': {
+    descriptors: ['proven programming', 'structured coaching', 'experience + evidence'],
+    emojiPairs: [
+      ['📈', '💪'],
+      ['🎯', '🏋️‍♀️'],
+      ['📊', '💪'],
+    ],
+  },
+  'Motivational & Energetic': {
+    descriptors: ['high-energy sessions', 'full-send effort', 'relentless consistency'],
+    emojiPairs: [
+      ['🔥', '⚡'],
+      ['💪', '🔥'],
+      ['⚡', '🏋️‍♀️'],
+    ],
+  },
+  'Friendly & Approachable': {
+    descriptors: ['zero judgment', 'real-people coaching', 'come-as-you-are vibes'],
+    emojiPairs: [
+      ['💪', '🙌'],
+      ['🥗', '💪'],
+      ['😊', '🔥'],
+    ],
+  },
+  'Scientific & Educational': {
+    descriptors: ['evidence-based training', 'data-driven programming', 'science-backed methods'],
+    emojiPairs: [
+      ['🧠', '💪'],
+      ['📊', '🔬'],
+      ['📈', '🧠'],
+    ],
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+/** A short, usable USP snippet — only when it stays tight enough to read cleanly. */
+function uspSnippet(usp: string): string | null {
+  const trimmed = usp.trim().replace(/\s+/g, ' ').replace(/[.。]+$/, '')
+  if (!trimmed) return null
+  if (countChars(trimmed) > 45) return null
+  return trimmed
+}
+
+interface Ctx {
+  audience: string
+  spec: string
+  descriptor: string
+  usp: string | null
+  verbs: string[]
+}
+
+// ---------------------------------------------------------------------------
+// Templates per style. Each returns an ordered list of candidate texts
+// (fuller first, shorter fallbacks last) — never emojis, never names.
+// ---------------------------------------------------------------------------
+
+function authorityTemplates(c: Ctx): string[] {
+  const [v1, v2] = c.verbs
+  const withUsp = c.usp
+    ? [
+        `${cap(c.usp)}. Coaching ${c.audience} to real ${c.spec} with ${c.descriptor}.`,
+        `${cap(c.usp)} — ${c.spec} coaching for ${c.audience}, built on ${v1} that counts.`,
+      ]
+    : []
+  return [
+    ...withUsp,
+    `Coaching ${c.audience} to real ${c.spec} with ${c.descriptor} and smarter ${v1}.`,
+    `${cap(c.spec)} coaching built on ${c.descriptor}. No fluff, just ${v1} and ${v2}.`,
+    `Helping ${c.audience} train with intent: dialed-in ${v1}, honest ${v2}.`,
+    `${cap(c.descriptor)} for ${c.audience}. ${cap(c.spec)} done right.`,
+  ]
+}
+
+function resultsTemplates(c: Ctx): string[] {
+  const [v1, v2] = c.verbs
+  const result = pick(RESULT_PHRASES)
+  const withUsp = c.usp
+    ? [
+        `${cap(c.usp)}. ${cap(c.spec)} for ${c.audience} — ${result}.`,
+        `${cap(c.usp)} turning consistent ${v1} into ${result} for ${c.audience}.`,
+      ]
+    : []
+  return [
+    ...withUsp,
+    `${cap(c.spec)} that sticks. Smarter ${v1}, better ${v2}, ${result}.`,
+    `Turning consistent ${v1} into visible ${c.spec} for ${c.audience}.`,
+    `Less guessing, more ${v1}. ${cap(result)} for ${c.audience} who show up.`,
+    `${cap(c.spec)} for ${c.audience}. Smarter ${v1}, ${result}.`,
+  ]
+}
+
+function communityTemplates(c: Ctx): string[] {
+  const [v1] = c.verbs
+  const withUsp = c.usp
+    ? [
+        `${cap(c.usp)}. A crew of ${c.audience} chasing ${c.spec} and keeping it honest.`,
+        `${cap(c.usp)} — ${c.audience} who train together and get strong for good.`,
+      ]
+    : []
+  return [
+    ...withUsp,
+    `Building a crew of ${c.audience} who chase ${c.spec} and keep each other honest.`,
+    `Where ${c.audience} train together, laugh often, and get strong for good.`,
+    `${cap(c.spec)} with a team that has your back: ${v1}, accountability, momentum.`,
+    `A home for ${c.audience} chasing ${c.spec} — together.`,
+  ]
+}
+
+const TEMPLATES: Record<Style, (c: Ctx) => string[]> = {
+  authority: authorityTemplates,
+  results: resultsTemplates,
+  community: communityTemplates,
+}
+
+// ---------------------------------------------------------------------------
+// Bio assembly
+// ---------------------------------------------------------------------------
+
+function buildBio(style: Style, ctx: Ctx, emojis: [string, string]): GeneratedBio {
+  const candidates = TEMPLATES[style](ctx)
+  const suffix = ` ${emojis[0]}${emojis[1]}`
+
+  for (const text of candidates) {
+    const full = text + suffix
+    if (countChars(full) <= MAX_CHARS) {
+      return { text: full, charCount: countChars(full) }
+    }
+  }
+
+  // Absolute fallback — guaranteed short, never a mid-sentence cut.
+  const safe = `${cap(ctx.spec)} coaching for ${ctx.audience}.` + suffix
+  return { text: safe, charCount: countChars(safe) }
+}
+
+export function generateBios(data: BioFormData): GeneratedBio[] {
+  const audienceList =
+    data.targetAudience && AUDIENCE_PHRASES[data.targetAudience]
+      ? AUDIENCE_PHRASES[data.targetAudience]
+      : ['everyday lifters']
+
+  const specPool =
+    data.specializations.length > 0
+      ? data.specializations.flatMap((s) => SPEC_PHRASES[s])
+      : ['strength', 'lean results', 'real gains', 'mobility']
+
+  const tone = data.tonePreference ? TONE[data.tonePreference] : TONE['Professional & Credible']
+  const usp = uspSnippet(data.uniqueSellingPoint)
+
+  const emojiPairs = shuffle(tone.emojiPairs)
+  const styles: Style[] = ['authority', 'results', 'community']
+
+  const seenText = new Set<string>()
+
+  return styles.map((style, i): GeneratedBio => {
+    const verbs = shuffle(FITNESS_VERBS)
+    const ctx: Ctx = {
+      audience: pick(audienceList),
+      spec: pick(specPool),
+      descriptor: pick(tone.descriptors),
+      usp,
+      verbs,
+    }
+
+    let bio = buildBio(style, ctx, emojiPairs[i % emojiPairs.length])
+
+    // Ensure the three bios read as clearly different.
+    let attempts = 0
+    while (seenText.has(bio.text) && attempts < 5) {
+      const retryCtx: Ctx = {
+        ...ctx,
+        audience: pick(audienceList),
+        spec: pick(specPool),
+        descriptor: pick(tone.descriptors),
+        verbs: shuffle(FITNESS_VERBS),
+      }
+      bio = buildBio(style, retryCtx, emojiPairs[i % emojiPairs.length])
+      attempts++
+    }
+    seenText.add(bio.text)
+    return bio
+  })
+}

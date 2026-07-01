@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# tsc -b build artifacts
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.env
+.env.local
+.DS_Store
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
