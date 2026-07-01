@@ -53,9 +53,9 @@ export default function InputForm({
   onToggleSpecialization,
 }: Props) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {/* Row: Name + Email */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
         <Field label="Name / Business Name" required error={errors.name}>
           <input
             className={inputBase}
@@ -79,7 +79,7 @@ export default function InputForm({
       </div>
 
       {/* Row: Business Type + Years */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
         <Field label="Business Type" required error={errors.businessType}>
           <select
             className={inputBase}
@@ -109,7 +109,7 @@ export default function InputForm({
       </div>
 
       {/* Row: Location + Target Audience */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
         <Field label="Location">
           <input
             className={inputBase}
@@ -154,7 +154,7 @@ export default function InputForm({
         <textarea
           className={
             'w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-[13.5px] ' +
-            'text-gray-800 outline-none transition-colors resize-none h-[74px] ' +
+            'text-gray-800 outline-none transition-colors resize-none h-[60px] ' +
             'focus:border-teal focus:ring-2 focus:ring-teal/20 placeholder:text-gray-400'
           }
           value={data.uniqueSellingPoint}

@@ -23,7 +23,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Keeps the form and results views at the same tool height so the embed size
 // never changes when switching pages.
-const VIEW_MIN_HEIGHT = 'min-h-[560px]'
+const VIEW_MIN_HEIGHT = 'min-h-[440px]'
 
 type View = 'form' | 'results'
 
