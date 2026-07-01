@@ -5,6 +5,7 @@ import {
   TARGET_AUDIENCES,
   TONE_PREFERENCES,
 } from '../lib/constants'
+import MultiSelectDropdown from './MultiSelectDropdown'
 
 interface Props {
   data: BioFormData
@@ -140,27 +141,12 @@ export default function InputForm({
       {/* Specializations */}
       <div>
         <label className={labelBase}>Specializations</label>
-        <div className="flex flex-wrap gap-1.5">
-          {SPECIALIZATIONS.map((spec) => {
-            const active = data.specializations.includes(spec)
-            return (
-              <button
-                key={spec}
-                type="button"
-                onClick={() => onToggleSpecialization(spec)}
-                aria-pressed={active}
-                className={
-                  'px-2.5 py-1 rounded-full text-[12px] font-medium border transition-colors ' +
-                  (active
-                    ? 'bg-teal text-white border-teal'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-teal hover:text-teal')
-                }
-              >
-                {spec}
-              </button>
-            )
-          })}
-        </div>
+        <MultiSelectDropdown
+          options={SPECIALIZATIONS}
+          selected={data.specializations}
+          onToggle={onToggleSpecialization}
+          placeholder="Select specializations"
+        />
       </div>
 
       {/* USP */}
