@@ -75,7 +75,7 @@ export default function LeadCaptureModal({ open, existingEmail, onClose, onBook 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 p-4 rounded-2xl"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -99,7 +99,7 @@ export default function LeadCaptureModal({ open, existingEmail, onClose, onBook 
         </button>
 
         <h2 id="lead-modal-title" className="text-[16px] font-bold text-gray-900 pr-6">
-          You’ve hit today’s limit 🎉
+          Bio copied 🎉
         </h2>
         <p className="mt-1.5 text-[13px] leading-snug text-gray-600">
           Want unlimited fitness business tools? Book a free FitBudd demo.

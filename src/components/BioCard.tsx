@@ -4,9 +4,10 @@ import { MAX_CHARS } from '../lib/generateBios'
 
 interface Props {
   bio: GeneratedBio
+  onCopied?: () => void
 }
 
-export default function BioCard({ bio }: Props) {
+export default function BioCard({ bio, onCopied }: Props) {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function BioCard({ bio }: Props) {
       document.body.removeChild(ta)
     }
     setCopied(true)
+    onCopied?.()
   }
 
   return (
