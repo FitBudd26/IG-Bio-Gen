@@ -178,16 +178,15 @@ export default function InputForm({
       </Field>
 
       {/* Tone */}
-      <Field label="Tone Preference" required error={errors.tonePreference}>
+      <Field label="Tone Preference">
         <select
           className={inputBase}
           value={data.tonePreference}
           onChange={(e) =>
             onChange('tonePreference', e.target.value as BioFormData['tonePreference'])
           }
-          aria-invalid={!!errors.tonePreference}
         >
-          <option value="">Select…</option>
+          <option value="Auto">Auto (based on your input)</option>
           {TONE_PREFERENCES.map((t) => (
             <option key={t} value={t}>
               {t}

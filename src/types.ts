@@ -46,7 +46,8 @@ export interface BioFormData {
   specializations: Specialization[]
   targetAudience: TargetAudience | ''
   uniqueSellingPoint: string
-  tonePreference: TonePreference | ''
+  /** 'Auto' infers the best tone from the other inputs; '' is unselected. */
+  tonePreference: TonePreference | 'Auto' | ''
 }
 
 export interface GeneratedBio {

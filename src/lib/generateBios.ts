@@ -116,6 +116,104 @@ const TONE: Record<
 }
 
 // ---------------------------------------------------------------------------
+// Auto tone inference — picks the tone that best fits the user's inputs.
+// ---------------------------------------------------------------------------
+
+const DEFAULT_TONE: TonePreference = 'Professional & Credible'
+
+export function inferTone(data: BioFormData): TonePreference {
+  const score: Record<TonePreference, number> = {
+    'Professional & Credible': 0,
+    'Motivational & Energetic': 0,
+    'Friendly & Approachable': 0,
+    'Scientific & Educational': 0,
+  }
+
+  // Business type signals
+  switch (data.businessType) {
+    case 'Nutrition Coach':
+      score['Scientific & Educational'] += 2
+      break
+    case 'CrossFit Coach':
+    case 'Group Fitness Instructor':
+    case 'Fitness Influencer':
+      score['Motivational & Energetic'] += 2
+      break
+    case 'Yoga/Pilates Instructor':
+      score['Friendly & Approachable'] += 2
+      break
+    case 'Gym Owner':
+    case 'Boutique Studio Owner':
+    case 'Online Fitness Coach':
+    case 'Personal Trainer':
+      score['Professional & Credible'] += 1
+      break
+  }
+
+  // Target audience signals
+  switch (data.targetAudience) {
+    case 'Athletes':
+      score['Motivational & Energetic'] += 2
+      break
+    case 'Beginners':
+    case 'Busy Parents':
+      score['Friendly & Approachable'] += 2
+      break
+    case 'Seniors (55+)':
+      score['Friendly & Approachable'] += 1
+      score['Scientific & Educational'] += 1
+      break
+    case 'Young Professionals':
+      score['Professional & Credible'] += 1
+      break
+  }
+
+  // Specialization signals
+  for (const spec of data.specializations) {
+    if (spec === 'Athletic Performance' || spec === 'Muscle Building')
+      score['Motivational & Energetic'] += 1
+    else if (
+      spec === 'Nutrition Coaching' ||
+      spec === 'Injury Recovery' ||
+      spec === 'Senior Fitness' ||
+      spec === 'Functional Movement'
+    )
+      score['Scientific & Educational'] += 1
+    else if (spec === 'Mental Health & Fitness' || spec === "Women's Health")
+      score['Friendly & Approachable'] += 1
+  }
+
+  // Unique selling point keyword signals
+  const usp = data.uniqueSellingPoint.toLowerCase()
+  const has = (words: string[]) => words.some((w) => usp.includes(w))
+  if (has(['science', 'evidence', 'research', 'study', 'data', 'phd', 'physio', 'rd ', 'dietitian']))
+    score['Scientific & Educational'] += 2
+  if (has(['certified', 'certification', 'years', 'experience', 'proven', 'licensed', 'accredited']))
+    score['Professional & Credible'] += 2
+  if (has(['fun', 'energy', 'hype', 'motivat', 'passion', 'intense']))
+    score['Motivational & Energetic'] += 2
+  if (has(['welcoming', 'friendly', 'judgment', 'judgement', 'community', 'supportive', 'safe space']))
+    score['Friendly & Approachable'] += 2
+
+  // Highest score wins; deterministic tie-break via preference order.
+  const order: TonePreference[] = [
+    'Professional & Credible',
+    'Motivational & Energetic',
+    'Friendly & Approachable',
+    'Scientific & Educational',
+  ]
+  let best = DEFAULT_TONE
+  let bestScore = -1
+  for (const tone of order) {
+    if (score[tone] > bestScore) {
+      bestScore = score[tone]
+      best = tone
+    }
+  }
+  return best
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -246,7 +344,13 @@ export function generateBios(data: BioFormData): GeneratedBio[] {
       ? data.specializations.flatMap((s) => SPEC_PHRASES[s])
       : ['strength', 'lean results', 'real gains', 'mobility']
 
-  const tone = data.tonePreference ? TONE[data.tonePreference] : TONE['Professional & Credible']
+  // Resolve the tone: a concrete choice is used directly; 'Auto' or unselected
+  // infers the best-fitting tone from the rest of the inputs.
+  const resolvedTone: TonePreference =
+    data.tonePreference && data.tonePreference !== 'Auto'
+      ? data.tonePreference
+      : inferTone(data)
+  const tone = TONE[resolvedTone]
   const usp = uspSnippet(data.uniqueSellingPoint)
 
   const emojiPairs = shuffle(tone.emojiPairs)

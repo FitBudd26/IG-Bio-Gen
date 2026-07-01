@@ -22,7 +22,7 @@ const EMPTY_FORM: BioFormData = {
   specializations: [],
   targetAudience: '',
   uniqueSellingPoint: '',
-  tonePreference: '',
+  tonePreference: 'Auto',
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -58,7 +58,6 @@ export default function BioGenerator() {
     else if (!EMAIL_RE.test(form.email.trim())) next.email = 'Enter a valid email.'
     if (!form.businessType) next.businessType = 'Business Type is required.'
     if (!form.targetAudience) next.targetAudience = 'Target Audience is required.'
-    if (!form.tonePreference) next.tonePreference = 'Tone Preference is required.'
     setErrors(next)
     return Object.keys(next).length === 0
   }
