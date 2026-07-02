@@ -96,6 +96,9 @@ export default function BioGenerator() {
   return (
     <div className="relative w-full max-w-[536px] mx-auto p-4">
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
+        <h1 className="text-center text-[14px] font-bold text-accent mb-2.5 leading-tight">
+          IG Bio Gen for Fitness Professionals
+        </h1>
         {view === 'form' ? (
           <div className={`flex flex-col ${VIEW_MIN_HEIGHT}`}>
             <div className="flex-1">
